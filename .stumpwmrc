@@ -25,7 +25,8 @@
 (define-key *root-map* (kbd "M-x") "colon")
 ;;(define-key *root-map* (kbd "C-i") "exec xcalib -invert -alter")
 (define-key *root-map* (kbd "C-i") "invert-window")
-(define-key *root-map* (kbd "C-t") "exec gnome-terminal")
+(define-key *root-map* (kbd "C-t") "exec terminal")
+(define-key *root-map* (kbd "c") "exec gnome-terminal")
 (define-key *root-map* (kbd "XF86HomePage") "exec iceweasel")
 
 (define-key *root-map* (kbd "n") "gnext")
