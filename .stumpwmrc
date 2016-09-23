@@ -1,44 +1,82 @@
 ;; -*-lisp-*-
-(in-package :stumpwm)
+;;======================================================================
 
+
+(in-package :stumpwm)
 (load-module "wifi")
 (load-module "battery-portable")
 
-;;(set-prefix-key (kbd "F20")) win key
+
+;;======================================================================
+
+
 (set-prefix-key (kbd "C-3"))
 
-(define-key *root-map* (kbd "C-3") "hsplit")
-(define-key *root-map* (kbd "C-2") "vsplit")
-(define-key *root-map* (kbd "C-1") "only")
-(define-key *root-map* (kbd "C-0") "remove-split")
-(define-key *root-map* (kbd "3") "hsplit")
-(define-key *root-map* (kbd "2") "vsplit")
-(define-key *root-map* (kbd "1") "only")
-(define-key *root-map* (kbd "0") "remove-split")
+
+;;======================================================================
+;; User Input
+
+;;------------------------------------------------------------
+;; Meta & Shell
+
+(define-key *root-map* (kbd "M-x") "colon")
+(define-key *root-map* (kbd "C-t") "exec terminal")
+(define-key *root-map* (kbd "c") "exec gnome-terminal")
+
+;;------------------------------------------------------------
+;; Mouse
+
+(setf *mouse-focus-policy* :click) ;; :click, :ignore, :sloppy
+
+;;------------------------------------------------------------
+;; Focus
 
 (define-key *root-map* (kbd "C-Right") "move-focus right")
 (define-key *root-map* (kbd "C-Left") "move-focus left")
 (define-key *root-map* (kbd "C-Up") "move-focus up")
 (define-key *root-map* (kbd "C-Down") "move-focus down")
-(define-key *root-map* (kbd "C-b") "pull-window-select")
-(define-key *root-map* (kbd "b") "pull-window-select")
-(define-key *root-map* (kbd "M-x") "colon")
-;;(define-key *root-map* (kbd "C-i") "exec xcalib -invert -alter")
-(define-key *root-map* (kbd "C-i") "invert-window")
-(define-key *root-map* (kbd "C-t") "exec terminal")
-(define-key *root-map* (kbd "c") "exec gnome-terminal")
-(define-key *root-map* (kbd "XF86HomePage") "exec iceweasel")
+
+;;------------------------------------------------------------
+;; Groups
 
 (define-key *root-map* (kbd "n") "gnext")
 (define-key *root-map* (kbd "p") "gprev")
 (define-key *root-map* (kbd "C-n") "gnext")
 (define-key *root-map* (kbd "C-p") "gprev")
 
-(define-key *root-map* (kbd "C-m") "my-show-mode-line")
+;;------------------------------------------------------------
+;; Frames
+
+(define-key *root-map* (kbd "3") "hsplit")
+(define-key *root-map* (kbd "C-3") "hsplit")
+
+(define-key *root-map* (kbd "2") "vsplit")
+(define-key *root-map* (kbd "C-2") "vsplit")
+
+(define-key *root-map* (kbd "1") "only")
+(define-key *root-map* (kbd "C-1") "only")
+
+(define-key *root-map* (kbd "0") "remove-split")
+(define-key *root-map* (kbd "C-0") "remove-split")
+
+;;------------------------------------------------------------
+;; Ham-Hands & Sanity Changes
 
 (undefine-key *root-map* (kbd ";"))
 
-(setf *mouse-focus-policy* :click) ;; :click, :ignore, :sloppy
+
+
+
+;;======================================================================
+;; Desktop Aethetics
+
+;;------------------------------------------------------------
+;; set desktop background
+
+(stumpwm:run-shell-command "feh --bg-scale /home/baggers/Pictures/GardenED2.png")
+
+;;------------------------------------------------------------
+;; Modeline
 
 (setf stumpwm:*screen-mode-line-format*
       (list "%w | %I | %B | " '(:eval (stumpwm:run-shell-command "date" t))))
@@ -47,12 +85,37 @@
 	    (stumpwm:toggle-mode-line (stumpwm:current-screen)
 				      (stumpwm:current-head)))
 
-(defvar win-history nil)
+(define-key *root-map* (kbd "C-m") "my-show-mode-line")
+
+
+
+
+;;======================================================================
+;; Windows
+
+;;------------------------------------------------------------
+;; General
+
+(defun window-from-menu ()
+  (select-window-from-menu (sort-windows (current-group))
+                           *window-format*))
+
+;;------------------------------------------------------------
+;; Switch with history
+
+(defvar *win-history* nil)
+
+(defun add-window-to-history (win)
+  (setf *win-history* (remove-duplicates (cons win *win-history*)
+                                         :test #'eq :from-end t)))
 
 (defcommand pull-window-select () ()
-  (let ((win (select-window-from-menu (sort-windows (current-group)) *window-format*)))
+  "Pick a window from the menu.
+   Tries to have emacs 'Switch to buffer' like behaviour"
+  (let* ((previous-win (current-window))
+         (win (window-from-menu)))
     (when win
-      (push win win-history)
+      (add-window-to-history previous-win)
       (if (window-visible-p win)
 	  (focus-window win)
 	  (pull-window win)))))
@@ -65,9 +128,15 @@
                                    (list (format-expand *window-formatters* fmt w) w))
                                  windows)
                          nil
-                         (or (position (second win-history) windows) 0)))))
+                         (or (position (first *win-history*) windows) 0)))))
     (undefine-key *menu-map* (kbd "C-k"))
     result))
+
+(define-key *root-map* (kbd "C-b") "pull-window-select")
+(define-key *root-map* (kbd "b") "pull-window-select")
+
+;;------------------------------------------------------------
+;; Inverting Window Color
 
 (defvar *inverted-windows* nil)
 
@@ -75,6 +144,7 @@
   (xlib:window-id (window-xwin (current-window))))
 
 (defcommand invert-window () ()
+  "Invert the current window using compton"
   (let ((id (current-window-xwin-id))
 	(compton-runningp (run-shell-command "pidof compton" t)))
     (setf *inverted-windows* (if (member id *inverted-windows*)
@@ -88,12 +158,34 @@
 	 (format nil "compton --backend glx --invert-color-include '~a'"
 		 ids-pattern))))))
 
+(define-key *root-map* (kbd "C-i") "invert-window")
+
+
+
+
+;;======================================================================
+;; Taking Screenshots
+
 (defcommand screenshot () ()
   (run-shell-command
    (concatenate 'string "xwd -root -out ~/Desktop/"
 		(multiple-value-bind (s m h dy mn yr) (get-decoded-time)
 		  (format nil "screengrab-~s-~s-~s-~s-~s-~s.xwd"
 			  yr mn dy h m s)))))
+
+
+
+
+;;======================================================================
+;; Desktop Applications
+
+(define-key *root-map* (kbd "XF86HomePage") "exec iceweasel")
+
+
+
+
+;;======================================================================
+;; Meta
 
 ;; Load swank.
 (load "~/quicklisp/dists/quicklisp/software/slime-v2.17/swank-loader.lisp")
@@ -104,8 +196,11 @@
   (swank:create-server :port 5005 :style swank:*communication-style* :dont-close t)
   (echo-string (current-screen) "Starting swank. M-x slime-connect using port 5005."))
 
+
+
+
+;;======================================================================
+;; Things that didnt work out
+
 ;;fails
 ;;(define-key *root-map* (kbd "C-y") "exec kupfer") didnt work very well, kupfer keeps focusing the first group
-
-;; set desktop background
-(stumpwm:run-shell-command "feh --bg-scale /home/baggers/Pictures/GardenED2.png")
