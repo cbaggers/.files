@@ -56,9 +56,6 @@
 (define-key *root-map* (kbd "1") "only")
 (define-key *root-map* (kbd "C-1") "only")
 
-(define-key *root-map* (kbd "0") "remove-split")
-(define-key *root-map* (kbd "C-0") "remove-split")
-
 ;;------------------------------------------------------------
 ;; Ham-Hands & Sanity Changes
 
@@ -109,17 +106,6 @@
   (setf *win-history* (remove-duplicates (cons win *win-history*)
                                          :test #'eq :from-end t)))
 
-(defcommand pull-window-select () ()
-  "Pick a window from the menu.
-   Tries to have emacs 'Switch to buffer' like behaviour"
-  (let* ((previous-win (current-window))
-         (win (window-from-menu)))
-    (when win
-      (add-window-to-history previous-win)
-      (if (window-visible-p win)
-	  (focus-window win)
-	  (pull-window win)))))
-
 (defun select-window-from-menu (windows fmt)
   (define-key stumpwm::*menu-map* (kbd "C-k") 'kill-window)
   (let ((result (second (select-from-menu
@@ -132,8 +118,31 @@
     (undefine-key *menu-map* (kbd "C-k"))
     result))
 
-(define-key *root-map* (kbd "C-b") "pull-window-select")
-(define-key *root-map* (kbd "b") "pull-window-select")
+(defcommand select-window-with-history () ()
+  "Pick a window from the menu.
+   Tries to have emacs 'Switch to buffer' like behaviour"
+  (let* ((previous-win (current-window))
+         (win (window-from-menu)))
+    (when win
+      (add-window-to-history previous-win)
+      (if (window-visible-p win)
+	  (focus-window win)
+	  (pull-window win)))))
+
+(defcommand remove-split-with-history () ()
+  "Remove current-split and take the window that was there and add it to
+   the window history"
+  (let ((win (current-window)))
+    (when win
+      (add-window-to-history win)))
+  (remove-split))
+
+(define-key *root-map* (kbd "C-b") "select-window-with-history")
+(define-key *root-map* (kbd "b") "select-window-with-history")
+(define-key *root-map* (kbd "0") "remove-split-with-history")
+(define-key *root-map* (kbd "C-0") "remove-split-with-history")
+
+;;On hide frame add window to history
 
 ;;------------------------------------------------------------
 ;; Inverting Window Color
