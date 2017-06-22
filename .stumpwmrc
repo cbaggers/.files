@@ -22,6 +22,7 @@
 (define-key *root-map* (kbd "M-x") "colon")
 (define-key *root-map* (kbd "C-t") "exec terminal")
 (define-key *root-map* (kbd "c") "exec gnome-terminal")
+(define-key *root-map* (kbd "C-c") "exec gnome-terminal")
 
 ;;------------------------------------------------------------
 ;; Mouse
@@ -79,13 +80,19 @@
       (list "%w | %I | %B | " '(:eval (stumpwm:run-shell-command "date" t))))
 
 (defcommand my-show-mode-line () ()
-	    (stumpwm:toggle-mode-line (stumpwm:current-screen)
-				      (stumpwm:current-head)))
+            (stumpwm:toggle-mode-line (stumpwm:current-screen)
+                                      (stumpwm:current-head)))
 
 (define-key *root-map* (kbd "C-m") "my-show-mode-line")
 
+;;======================================================================
+;; usb keyboard mapping fuckery
 
+(defcommand rejig-kbd () ()
+            (message "rejig'd")
+            (stumpwm:run-shell-command "xmodmap /home/baggers/.Xmodmap"))
 
+(define-key *root-map* (kbd "XF86Calculator") "rejig-kbd")
 
 ;;======================================================================
 ;; Windows
@@ -119,23 +126,23 @@
     result))
 
 (defcommand select-window-with-history () ()
-  "Pick a window from the menu.
+            "Pick a window from the menu.
    Tries to have emacs 'Switch to buffer' like behaviour"
-  (let* ((previous-win (current-window))
-         (win (window-from-menu)))
-    (when win
-      (add-window-to-history previous-win)
-      (if (window-visible-p win)
-	  (focus-window win)
-	  (pull-window win)))))
+            (let* ((previous-win (current-window))
+                   (win (window-from-menu)))
+              (when win
+                (add-window-to-history previous-win)
+                (if (window-visible-p win)
+                    (focus-window win)
+                    (pull-window win)))))
 
 (defcommand remove-split-with-history () ()
-  "Remove current-split and take the window that was there and add it to
+            "Remove current-split and take the window that was there and add it to
    the window history"
-  (let ((win (current-window)))
-    (when win
-      (add-window-to-history win)))
-  (remove-split))
+            (let ((win (current-window)))
+              (when win
+                (add-window-to-history win)))
+            (remove-split))
 
 (define-key *root-map* (kbd "C-b") "select-window-with-history")
 (define-key *root-map* (kbd "b") "select-window-with-history")
@@ -153,19 +160,19 @@
   (xlib:window-id (window-xwin (current-window))))
 
 (defcommand invert-window () ()
-  "Invert the current window using compton"
-  (let ((id (current-window-xwin-id))
-	(compton-runningp (run-shell-command "pidof compton" t)))
-    (setf *inverted-windows* (if (member id *inverted-windows*)
-				 (remove id *inverted-windows*)
-				 (cons id *inverted-windows*)))
-    (when compton-runningp
-      (run-shell-command "pkill compton" t))
-    (when *inverted-windows*
-      (let ((ids-pattern (format nil "~{client=~s~^ || ~}" *inverted-windows*)))
-	(run-shell-command
-	 (format nil "compton --backend glx --invert-color-include '~a'"
-		 ids-pattern))))))
+            "Invert the current window using compton"
+            (let ((id (current-window-xwin-id))
+                  (compton-runningp (run-shell-command "pidof compton" t)))
+              (setf *inverted-windows* (if (member id *inverted-windows*)
+                                           (remove id *inverted-windows*)
+                                           (cons id *inverted-windows*)))
+              (when compton-runningp
+                (run-shell-command "pkill compton" t))
+              (when *inverted-windows*
+                (let ((ids-pattern (format nil "~{client=~s~^ || ~}" *inverted-windows*)))
+                  (run-shell-command
+                   (format nil "compton --backend glx --invert-color-include '~a'"
+                           ids-pattern))))))
 
 (define-key *root-map* (kbd "C-i") "invert-window")
 
@@ -176,11 +183,11 @@
 ;; Taking Screenshots
 
 (defcommand screenshot () ()
-  (run-shell-command
-   (concatenate 'string "xwd -root -out ~/Desktop/"
-		(multiple-value-bind (s m h dy mn yr) (get-decoded-time)
-		  (format nil "screengrab-~s-~s-~s-~s-~s-~s.xwd"
-			  yr mn dy h m s)))))
+            (run-shell-command
+             (concatenate 'string "xwd -root -out ~/Desktop/"
+                          (multiple-value-bind (s m h dy mn yr) (get-decoded-time)
+                            (format nil "screengrab-~s-~s-~s-~s-~s-~s.xwd"
+                                    yr mn dy h m s)))))
 
 
 
@@ -189,9 +196,6 @@
 ;; Desktop Applications
 
 (define-key *root-map* (kbd "XF86HomePage") "exec iceweasel")
-
-
-
 
 ;;======================================================================
 ;; Meta
@@ -202,8 +206,8 @@
 (swank-loader:init)
 
 (defcommand swank () ()
-  (swank:create-server :port 5005 :style swank:*communication-style* :dont-close t)
-  (echo-string (current-screen) "Starting swank. M-x slime-connect using port 5005."))
+            (swank:create-server :port 5005 :style swank:*communication-style* :dont-close t)
+            (echo-string (current-screen) "Starting swank. M-x slime-connect using port 5005."))
 
 
 
