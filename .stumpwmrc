@@ -62,16 +62,17 @@
 
 (undefine-key *root-map* (kbd ";"))
 
-
-
-
 ;;======================================================================
 ;; Desktop Aethetics
+
+(stumpwm:run-shell-command
+ "setxkbmap -layout gb -option ctrl:nocaps")
 
 ;;------------------------------------------------------------
 ;; set desktop background
 
-(stumpwm:run-shell-command "feh --bg-scale /home/baggers/Pictures/GardenED2.png")
+(stumpwm:run-shell-command
+ "/usr/bin/feh --no-fehbg --bg-scale '/home/baggers/Pictures/spacexLanding.jpg'")
 
 ;;------------------------------------------------------------
 ;; Modeline
@@ -84,15 +85,6 @@
                                       (stumpwm:current-head)))
 
 (define-key *root-map* (kbd "C-m") "my-show-mode-line")
-
-;;======================================================================
-;; usb keyboard mapping fuckery
-
-(defcommand rejig-kbd () ()
-            (message "rejig'd")
-            (stumpwm:run-shell-command "xmodmap /home/baggers/.Xmodmap"))
-
-(define-key *root-map* (kbd "XF86Calculator") "rejig-kbd")
 
 ;;======================================================================
 ;; Windows
@@ -176,9 +168,6 @@
 
 (define-key *root-map* (kbd "C-i") "invert-window")
 
-
-
-
 ;;======================================================================
 ;; Taking Screenshots
 
@@ -201,7 +190,7 @@
 ;; Meta
 
 ;; Load swank.
-(load "~/quicklisp/dists/quicklisp/software/slime-v2.17/swank-loader.lisp")
+(load "~/quicklisp/dists/quicklisp/software/slime-v2.24/swank-loader.lisp")
 
 (swank-loader:init)
 
