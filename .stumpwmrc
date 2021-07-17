@@ -1,17 +1,19 @@
 ;; -*-lisp-*-
 ;;======================================================================
 
-
 (in-package :stumpwm)
-(load-module "wifi")
-(load-module "battery-portable")
-
 
 ;;======================================================================
 
-
 (set-prefix-key (kbd "C-3"))
 
+(stumpwm:run-shell-command
+ "setxkbmap -layout gb -option ctrl:nocaps")
+
+;;======================================================================
+
+(load-module "wifi")
+(load-module "battery-portable")
 
 ;;======================================================================
 ;; User Input
@@ -64,9 +66,6 @@
 
 ;;======================================================================
 ;; Desktop Aethetics
-
-(stumpwm:run-shell-command
- "setxkbmap -layout gb -option ctrl:nocaps")
 
 ;;------------------------------------------------------------
 ;; set desktop background
@@ -194,9 +193,10 @@
 
 (swank-loader:init)
 
-(defcommand swank () ()
-            (swank:create-server :port 5005 :style swank:*communication-style* :dont-close t)
-            (echo-string (current-screen) "Starting swank. M-x slime-connect using port 5005."))
+(defcommand
+    swank () ()
+    (swank:create-server :port 5005 :style swank:*communication-style* :dont-close t)
+    (echo-string (current-screen) "Starting swank. M-x slime-connect using port 5005."))
 
 
 
