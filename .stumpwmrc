@@ -7,9 +7,6 @@
 
 (set-prefix-key (kbd "C-3"))
 
-(stumpwm:run-shell-command
- "setxkbmap -layout gb -option ctrl:nocaps")
-
 ;;======================================================================
 
 (load-module "wifi")

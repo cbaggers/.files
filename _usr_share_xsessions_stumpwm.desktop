@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Stumpwm
+Comment=Tiling, keyboard driven Common Lisp window manager
+Exec=/home/baggers/.stumpwm.sh
+TryExec=stumpwm
+Type=Application
+
+[X-Window Manager]
+SessionManaged=true
